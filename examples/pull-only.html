@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>pull-only</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="../dist/index.js"></script>
+</head>
+<body>
+<div id="app">
+    <pull-load :on-pull="handlePullLoad">
+        <div style="height: 12vh; line-height: 12vh; font-size: 1.25rem; text-align: center"
+             v-for="(item, index) in dataList" :key="index">
+            <span>{{item}}</span>
+        </div>
+    </pull-load>
+</div>
+
+<script type="module">
+    import data from './data.js';
+
+    const app = new Vue({
+        el: '#app',
+        components: {PullLoad},
+        data: {
+            dataList: data()
+        },
+        methods: {
+            handlePullLoad(complete) {
+                setTimeout(() => {
+                    this.dataList = data();
+                    complete();
+                }, 500);
+            },
+        },
+    })
+</script>
+</body>
+</html>

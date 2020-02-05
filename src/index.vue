@@ -16,37 +16,40 @@
             </slot>
         </div>
 
-        <div class="pull-load__body">
+        <div class="pull-load__body" ref="pullBody">
             <slot></slot>
         </div>
 
-        <div class="pull-load__bottom-tip" v-intersect.quiet="handleIntersect" v-if="onLazy">
-            <template v-if="lazyStatus === STATUS.Loading">
+        <div class="pull-load__bottom-tip" v-intersect="handleIntersect" v-if="onLazy">
+            <div v-if="!nomore" :style="{ opacity: lazyStatus === STATUS.Loading ? 1 : 0 }">
                 <slot name="bottomTip">
                     <svg class="icon tip-icon spin lazy-icon">
                         <use xlink:href="#icon-spinner2"></use>
                     </svg>
                 </slot>
-            </template>
+            </div>
+
+            <slot name="nomore" v-else>
+                <span>我是有底线的</span>
+            </slot>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
+<script>
 import Intersect from './inserted.directive';
 
-const threshold = 0.7;
-const rotate = function(value: number) {
+const threshold = 0.6;
+const rotate = function(value) {
     return value > threshold ? 720 : (value / threshold) * 720;
 };
 
-enum STATUS {
-    Loading,
-    Complete,
-    Pulling
-}
-export default Vue.extend({
+const STATUS = {
+    Loading: 0,
+    Complete: 1,
+    Pulling: 2
+};
+export default {
     props: {
         onPull: Function,
         pull: {
@@ -73,22 +76,30 @@ export default Vue.extend({
         };
     },
     computed: {
-        tipElement(): HTMLElement {
-            return (this.$refs as any).topTip as HTMLElement;
+        topTip() {
+            return this.$refs.topTip;
         },
-        tipStyles(): Object {
+        pullBody() {
+            return this.$refs.pullBody;
+        },
+        tipStyles() {
             return {
                 height: this.progress * this.maxTipHeight + 'px'
             };
         },
-        tipIconStyles(): Object {
+        tipIconStyles() {
             return {
                 transform: `rotate(${rotate(this.progress)}deg)`
             };
+        },
+        isBodyFilled() {
+            return (
+                this.pullBody.offsetHeight === Array.from(this.pullBody.childNodes).reduce((total, item) => item.offsetHeight + total, 0)
+            );
         }
     },
     methods: {
-        initEvent(): void {
+        initEvent() {
             if (!this.onPull) return;
 
             const touchable = 'ontouchstart' in document;
@@ -106,14 +117,14 @@ export default Vue.extend({
                 document.removeEventListener(touchend, this.handleTouchEnd);
             });
         },
-        handleTouchStart(event: Event): void {
-            if (!this.pull || this.pullStatus === STATUS.Loading) return;
+        handleTouchStart(event) {
+            if (this.pullStatus === STATUS.Loading) return;
 
             this.pullStatus = STATUS.Pulling;
             this.mouseY = this.touchPositionY(event);
         },
-        handleTouchMove(event: Event): void {
-            if (!this.pull || this.pullStatus !== STATUS.Pulling) return;
+        handleTouchMove(event) {
+            if (this.pullStatus !== STATUS.Pulling) return;
 
             let pullRatio = 2;
             let offsetY = this.mouseY - this.touchPositionY(event);
@@ -132,6 +143,10 @@ export default Vue.extend({
                 return;
             }
 
+            if (this.$el.scrollTop === 0 && this.isBodyFilled && this.scrolled(this.$el)) {
+                return;
+            }
+
             if (this.progress === 0) {
                 this.mouseY = this.touchPositionY(event);
                 offsetY = 1;
@@ -139,8 +154,8 @@ export default Vue.extend({
 
             this.progress = Math.min(Math.abs(offsetY / pullRatio / this.maxTipHeight), 1);
         },
-        handleTouchEnd(): void {
-            if (!this.pull || !this.progress || this.pullStatus === STATUS.Loading) return;
+        handleTouchEnd() {
+            if (this.pullStatus !== STATUS.Pulling || this.progress === 0) return;
 
             if (this.progress >= threshold) {
                 this.refresh();
@@ -148,14 +163,14 @@ export default Vue.extend({
                 this.pullReset();
             }
         },
-        touchPositionY(event: Event): number {
-            return event instanceof TouchEvent ? event.targetTouches[0].pageY : (event as MouseEvent).pageY;
+        touchPositionY(event) {
+            return event instanceof TouchEvent ? event.targetTouches[0].pageY : event.pageY;
         },
         pullLoading() {
             this.animateToProgress(threshold);
             this.pullStatus = STATUS.Loading;
         },
-        refresh(): void {
+        refresh() {
             this.nomore = false;
             this.pullLoading();
 
@@ -164,11 +179,11 @@ export default Vue.extend({
                     this.pullReset();
                 });
         },
-        pullReset(): void {
+        pullReset() {
             this.pullStatus = STATUS.Complete;
             this.animateToProgress(0);
         },
-        animateToProgress(toprogress: number) {
+        animateToProgress(toprogress) {
             let _this = this;
             let startTime = (typeof performance === 'undefined' ? Date : performance).now();
             let start = this.progress;
@@ -187,32 +202,38 @@ export default Vue.extend({
                 }
             });
         },
-        handleIntersect(entries: IntersectionObserverEntry[]) {
+        handleIntersect(entries) {
             if (this.nomore || this.lazyStatus === STATUS.Loading) return;
             if (!entries[0].isIntersecting) return;
 
             this.lazyStatus = STATUS.Loading;
 
-            this.onLazy((nomore: boolean) => {
+            this.onLazy(nomore => {
                 this.lazyReset(nomore);
             });
         },
-        lazyReset(nomore: boolean) {
+        lazyReset(nomore) {
             this.lazyStatus = STATUS.Complete;
             this.nomore = nomore;
+        },
+        scrolled(el) {
+            if (!el) return false;
+            if (el.scrollTop !== 0) return true;
+
+            return this.scrolled(el.parentElement);
         }
     },
-    mounted(): void {
-        this.maxTipHeight = parseInt(getComputedStyle(this.tipElement).maxHeight as string);
+    mounted() {
+        this.maxTipHeight = parseInt(getComputedStyle(this.topTip).maxHeight);
         this.initEvent();
     }
-});
+};
 </script>
 
 <style lang="scss" scoped>
 .pull-load {
     position: relative;
-    height: 100%;
+    /*height: 100%;*/
     width: 100%;
     overflow: auto;
     display: flex;
@@ -239,6 +260,9 @@ export default Vue.extend({
     &__bottom-tip {
         position: relative;
         text-align: center;
+        width: 100%;
+        min-height: 1px;
+        flex-shrink: 0;
         overflow: hidden;
     }
 }

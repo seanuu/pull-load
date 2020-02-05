@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
+<head>
+    <meta charset="UTF-8">
+    <title>custom-tip</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="../dist/index.js"></script>
+    <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <pull-load :on-pull="handlePullLoad" :on-lazy="handleLazyLoad">
+        <template slot="topTip" slot-scope="{progress, active, loading}">
+            <i class="fa fa-arrow-down" aria-hidden="true" v-if="!active"></i>
+            <i class="fa fa-arrow-up" aria-hidden="true" v-if="active && !loading"></i>
+            <i class="fa fa-spinner fa-spin" aria-hidden="true" v-if="loading"></i>
+        </template>
+
+        <div style="height: 12vh; line-height: 12vh; font-size: 1.25rem; text-align: center"
+             v-for="(item, index) in dataList" :key="index">
+            <span>{{item}}</span>
+        </div>
+
+        <template slot="bottomTip">
+            <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+        </template>
+
+        <template slot="nomore">
+            <span>没有更多了~</span>
+        </template>
+    </pull-load>
+</div>
+
+<script type="module">
+    import data from './data.js';
+
+    const app = new Vue({
+        el: '#app',
+        components: {PullLoad},
+        data: {
+            dataList: [],
+            page: 0
+        },
+        methods: {
+            handlePullLoad(complete) {
+                setTimeout(() => {
+                    this.dataList = data();
+                    complete();
+                }, 500);
+            },
+            handleLazyLoad(complete) {
+                setTimeout(() => {
+                    this.page++;
+                    this.dataList = this.dataList.concat(data());
+                    complete(this.page > 1);
+                }, 500);
+            }
+        },
+    })
+</script>
+</body>
+</html>
