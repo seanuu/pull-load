@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import Intersect from './inserted.directive';
+import Intersect from './Intersect.directive';
 
 const threshold = 0.6;
 const rotate = function(value) {
