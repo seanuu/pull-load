@@ -9,7 +9,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "webpack",
+        "build": "webpack && bundlesize",
         "lint": "vue-cli-service lint"
     },
     "PeerDependencies": {
@@ -23,6 +23,7 @@
         "@vue/eslint-config-prettier": "^5.0.0",
         "@vue/eslint-config-typescript": "^4.0.0",
         "babel-loader": "^8.0.6",
+        "bundlesize": "^0.18.0",
         "clean-webpack-plugin": "^3.0.0",
         "eslint": "^5.16.0",
         "eslint-plugin-prettier": "^3.1.1",
@@ -37,5 +38,16 @@
         "vue-template-compiler": "^2.6.10",
         "webpack": "^4.41.5",
         "webpack-cli": "^3.3.10"
-    }
+    },
+    "browserslist": [
+        "last 2 Chrome versions",
+        "> 1%",
+        "not ie <= 11"
+    ],
+    "bundlesize": [
+        {
+            "path": "./dist/index.js",
+            "threshold": "5kB"
+        }
+    ]
 }
