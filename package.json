@@ -10,7 +10,9 @@
     ],
     "scripts": {
         "build": "webpack && bundlesize",
-        "lint": "vue-cli-service lint"
+        "lint": "vue-cli-service lint",
+        "docs:dev": "vuepress dev docs",
+        "docs:build": "vuepress build docs"
     },
     "PeerDependencies": {
         "vue": ">=2.6"
@@ -25,6 +27,7 @@
         "babel-loader": "^8.0.6",
         "bundlesize": "^0.18.0",
         "clean-webpack-plugin": "^3.0.0",
+        "core-js": "^3.6.4",
         "eslint": "^5.16.0",
         "eslint-plugin-prettier": "^3.1.1",
         "eslint-plugin-vue": "^5.0.0",
@@ -36,13 +39,12 @@
         "vue": "^2.6.10",
         "vue-loader": "^15.8.3",
         "vue-template-compiler": "^2.6.10",
+        "vuepress": "^1.3.0",
         "webpack": "^4.41.5",
         "webpack-cli": "^3.3.10"
     },
     "browserslist": [
-        "last 2 Chrome versions",
-        "> 1%",
-        "not ie <= 11"
+        "defaults"
     ],
     "bundlesize": [
         {
