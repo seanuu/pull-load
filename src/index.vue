@@ -52,15 +52,7 @@ const STATUS = {
 export default {
     props: {
         onPull: Function,
-        pull: {
-            type: Boolean,
-            default: true
-        },
-        onLazy: Function,
-        lazy: {
-            type: Boolean,
-            default: true
-        }
+        onLazy: Function
     },
     directives: { Intersect },
     data() {
